@@ -2,6 +2,7 @@ from .base import *
 from .helper import *
 from .input import *
 from .dense import *
+from .attention import *
 from .noise import *
 from .conv import *
 from .pool import *
