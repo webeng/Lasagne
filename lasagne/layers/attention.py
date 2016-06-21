@@ -72,11 +72,12 @@ class AttentionLayer(Layer):
         # print num_inputs
         print self.input_shape
 
-        # self.Wym = self.add_param(W, (num_inputs, vocabulary_size), name="Wym")
-        # self.Wum = self.add_param(W, (num_inputs, vocabulary_size), name="Wum")
+        # self.Wym = self.add_param(Wym, (num_units, self.input_shape[0]), name="Wym")
+        # self.Wum = self.add_param(Wum, (num_units, self.input_shape[0]), name="Wum")
+        # self.Wms = self.add_param(Wms, (self.input_shape[1] / 2, num_units), name="Wms")
 
-        # self.Wym = self.add_param(Wym, (self.input_shape[1] / 2, num_units), name="Wym")
-        # self.Wum = self.add_param(Wum, (self.input_shape[1] / 2, num_units), name="Wum")
+        # self.Wrg = self.add_param(Wrg, (num_units, self.input_shape[0]), name="Wrg")
+        # self.Wug = self.add_param(Wug, (num_units, self.input_shape[0]), name="Wug")
 
         self.Wym = self.add_param(Wym, (num_units, self.input_shape[0]), name="Wym")
         self.Wum = self.add_param(Wum, (num_units, self.input_shape[0]), name="Wum")
@@ -86,42 +87,32 @@ class AttentionLayer(Layer):
         # self.Wug = self.add_param(Wug, (num_units, self.input_shape[0]), name="Wug")
 
         self.b = None
-        # if b is None:
-        #     self.b = None
-        # else:
-        #     self.b = self.add_param(b, (num_units,), name="b",
-        #                             regularizable=False)
-    # def __init__(self, incoming, num_units, W=init.GlorotUniform(),
-    #              b=init.Constant(0.), nonlinearity=nonlinearities.rectify,
-    #              **kwargs):
-    #     super(AttentionLayer, self).__init__(incoming, **kwargs)
-    #     self.nonlinearity = (nonlinearities.identity if nonlinearity is None
-    #                          else nonlinearity)
-
-    #     self.num_units = num_units
-
-    #     num_inputs = int(np.prod(self.input_shape[1:]))
-
-    #     self.W = self.add_param(W, (num_inputs, num_units), name="W")
-    #     if b is None:
-    #         self.b = None
-    #     else:
-    #         self.b = self.add_param(b, (num_units,), name="b",
-    #                                 regularizable=False)
 
     def get_output_shape_for(self, input_shape):
         print 'get_output_shape_for'
         return (self.num_units, input_shape[1] / 2)
 
     def get_output_for(self, input, **kwargs):
+        """
+        activation = T.dot(input, self.W)
+        if self.b is not None:
+            activation = activation + self.b.dimshuffle('x', 0)
+        return self.nonlinearity(activation)
+        """
         input_reshape = input.reshape((2, self.input_shape[0], self.input_shape[1] / 2))
         input_q = input_reshape[0]
         input_doc = input_reshape[1]
+
+        #print 'input_q.shape {}'.format(input_q.shape)
+        #print 'input_doc.shape {}'.format(input_doc.shape)
+
         activation = T.dot(self.Wym, input_q) + T.dot(self.Wum, input_doc)
+
+        #print 'input_doc.shape {}'.format(input_doc.shape)
 
         M = self.nonlinearity(activation)
         # return M
         S = T.exp(T.dot(self.Wms, M))
         r = T.dot(input_doc, S)
         return r
-        #return self.nonlinearity(T.dot(self.Wrg, r) + T.dot(self.Wug, input_q))
+        return self.nonlinearity(T.dot(self.Wrg, r) + T.dot(self.Wug, input_q))

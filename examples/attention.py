@@ -12,7 +12,7 @@ import theano.tensor as T
 import lasagne
 
 document, u = T.lmatrix(), T.lmatrix()
-vocabulary_size = 6
+vocabulary_size = 100
 
 input_var = T.lmatrix()
 # l_in = lasagne.layers.InputLayer(
@@ -21,8 +21,8 @@ input_var = T.lmatrix()
 a = np.random.rand(6, 20)
 b = np.random.rand(6, 20)
 
-# print a
-# print b
+print "a.shape {}".format(a.shape)
+print "b.shape {}".format(b.shape)
 
 a = lasagne.layers.InputLayer(
         shape=a.shape, input_var=a)
@@ -32,7 +32,12 @@ b = lasagne.layers.InputLayer(
 
 l_in = lasagne.layers.ConcatLayer([a, b])
 print "l_in shape {}".format(lasagne.layers.get_output_shape(l_in))
-network = lasagne.layers.AttentionLayer(l_in, vocabulary_size, nonlinearity=lasagne.nonlinearities.tanh)
+
+network = lasagne.layers.AttentionLayer(
+			incoming=l_in,
+			num_units=vocabulary_size,
+			nonlinearity=lasagne.nonlinearities.tanh
+		)
 output = lasagne.layers.get_output(l_in)
 get_output_values = theano.function([], outputs=output)
 #print get_output_values()
